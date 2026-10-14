@@ -33,6 +33,8 @@ from .api.v1 import (
 
 from .monitoring.middleware import PerformanceMonitoringMiddleware
 
+from app.core.database_pool import db_pool
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -89,6 +91,7 @@ async def cache_invalidation_listener():
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up...")
+    await db_pool.initialize()
 
     # Initialize Supabase connection pool
     try:
@@ -122,6 +125,8 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     logger.info("Shutting down...")
+
+    await db_pool.close()
 
     # Shutdown async processor
     await async_processor.shutdown()
